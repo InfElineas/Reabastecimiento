@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(ls c:/Users/infor/OneDrive/Documentos/Proyectos/ReabastecimientoUpdate80426/.env*)",
+      "Bash(npm uninstall:*)",
+      "Bash(ls c:/Users/infor/OneDrive/Documentos/Proyectos/ReabastecimientoUpdate80426/src/pages/Sales*)",
+      "Bash(find \"c:/Users/infor/OneDrive/Documentos/Proyectos/ReabastecimientoUpdate80426/src\" -type f \\\\\\( -name \"*.js\" -o -name \"*.jsx\" \\\\\\) -exec grep -l \"import.*from.*['\\\\\"]\" {} \\\\;)",
+      "Bash(find . -type f \\\\\\( -name \"*.jsx\" -o -name \"*.js\" \\\\\\) -exec grep -l \"from\\\\s*['\\\\\"]\\\\.\\\\.?/\" {} \\\\;)",
+      "Bash(cd \"c:/Users/infor/OneDrive/Documentos/Proyectos/ReabastecimientoUpdate80426/src\" echo \"=== DETALLES DEL IMPORT ROTO ===\" echo \"\" echo \"ARCHIVO CON EL IMPORT ROTO:\" echo \" Path: src/pages/Catalog.jsx\" echo \" Línea: 8\" echo \" Import: import CatalogFilters from \\\\\"../components/catalog/CatalogFilters\\\\\";\" echo \"\" echo \"PROBLEMA:\" echo \" El archivo intenta importar '../components/catalog/CatalogFilters'\" echo \" Pero el archivo real se llama: 'CatalogFilter.jsx' \\(sin la 's' al final\\)\" echo \"\" echo \"ARCHIVO IMPORTADOR:\" echo \" Ruta absoluta: c:/Users/infor/OneDrive/Documentos/Proyectos/ReabastecimientoUpdate80426/src/pages/Catalog.jsx\" echo \"\" echo \"ARCHIVO BUSCADO \\(no existe\\):\" echo \" Ruta absoluta: c:/Users/infor/OneDrive/Documentos/Proyectos/ReabastecimientoUpdate80426/src/components/catalog/CatalogFilters.jsx\" echo \" Ruta absoluta: c:/Users/infor/OneDrive/Documentos/Proyectos/ReabastecimientoUpdate80426/src/components/catalog/CatalogFilters.js\" echo \"\" echo \"ARCHIVO REAL QUE EXISTE:\" ls -la \"components/catalog/CatalogFilter.jsx\")",
+      "Read(//c/Users/infor/OneDrive/Documentos/Proyectos/ReabastecimientoUpdate80426/{print \"  Ruta absoluta: c:/Users/infor/OneDrive/Documentos/Proyectos/ReabastecimientoUpdate80426/src/**)",
+      "Bash(npx eslint:*)",
+      "Bash(npx tsc:*)"
+    ]
+  }
+}
