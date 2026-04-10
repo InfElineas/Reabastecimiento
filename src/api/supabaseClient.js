@@ -44,14 +44,14 @@ function createEntityAdapter(entityName) {
   if (!table) throw new Error(`Unknown entity: ${entityName}`);
 
   return {
-    /** List all records, ordered and limited */
-    async list(orderBy, limit = 1000) {
+    /** List all records, ordered and limited, with optional offset for pagination */
+    async list(orderBy, limit = 1000, offset = 0) {
       const { column, ascending } = parseOrderBy(orderBy);
       const { data, error } = await supabase
         .from(table)
         .select('*')
         .order(column, { ascending })
-        .limit(limit);
+        .range(offset, offset + limit - 1);
       if (error) throw error;
       return data ?? [];
     },
@@ -111,6 +111,84 @@ function createEntityAdapter(entityName) {
         .select();
       if (error) throw error;
       return data ?? [];
+    },
+
+    /**
+     * Bulk upsert: inserts or updates rows based on the conflict column.
+     * Use 'codigo' for products, 'id' for forcing updates on offers.
+     */
+    async bulkUpsert(items, conflictColumn) {
+      if (!items?.length) return [];
+      const { data, error } = await supabase
+        .from(table)
+        .upsert(items, { onConflict: conflictColumn })
+        .select();
+      if (error) throw error;
+      return data ?? [];
+    },
+
+    /**
+     * Server-side paginated filtering with text search and custom operators.
+     * Returns { data: [], total: number }.
+     *
+     * @param {Object} conditions  - Equality conditions { column: value }
+     * @param {Object} options
+     *   @param {{ text: string, columns: string[] }} [options.search]  - ilike text search
+     *   @param {Array<{ type, column, value }>}     [options.extraFilters]
+     *   @param {string}  [options.orderBy]  - e.g. "nombre" or "-updated_at"
+     *   @param {number}  [options.limit]    - default 50
+     *   @param {number}  [options.offset]   - default 0
+     */
+    async filterPaginated(conditions = {}, options = {}) {
+      const { search, extraFilters = [], orderBy, limit = 50, offset = 0 } = options;
+      const { column, ascending } = parseOrderBy(orderBy);
+
+      let q = supabase.from(table).select('*', { count: 'exact' });
+
+      // Text search across multiple columns (OR)
+      if (search?.text?.trim()) {
+        const t = search.text.trim().replace(/[%_\\]/g, (c) => `\\${c}`);
+        const orExpr = (search.columns || []).map((c) => `${c}.ilike.%${t}%`).join(',');
+        if (orExpr) q = q.or(orExpr);
+      }
+
+      // Equality / array conditions
+      for (const [key, value] of Object.entries(conditions)) {
+        if (value === null || value === undefined) continue;
+        if (Array.isArray(value)) q = q.in(key, value);
+        else q = q.eq(key, value);
+      }
+
+      // Extra operators
+      for (const f of extraFilters) {
+        if (f.type === 'gt')  q = q.gt(f.column, f.value);
+        if (f.type === 'gte') q = q.gte(f.column, f.value);
+        if (f.type === 'lt')  q = q.lt(f.column, f.value);
+        if (f.type === 'lte') q = q.lte(f.column, f.value);
+        if (f.type === 'neq') q = q.neq(f.column, f.value);
+        if (f.type === 'is')  q = q.is(f.column, f.value);
+      }
+
+      q = q.order(column, { ascending }).range(offset, offset + limit - 1);
+      const { data, error, count } = await q;
+      if (error) throw error;
+      return { data: data ?? [], total: count ?? 0 };
+    },
+
+    /**
+     * Returns sorted unique non-null values for a single column.
+     * Used to populate filter dropdowns (proveedores, categorías, etc.)
+     */
+    async selectDistinct(column, limit = 60000) {
+      const { data, error } = await supabase
+        .from(table)
+        .select(column)
+        .not(column, 'is', null)
+        .neq(column, '')
+        .limit(limit);
+      if (error) throw error;
+      const unique = [...new Set((data ?? []).map((r) => r[column]).filter(Boolean))].sort();
+      return unique;
     },
   };
 }
