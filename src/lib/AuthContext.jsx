@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { supabase } from '@/api/supabaseClient';
+import { isSupabaseConfigured, supabase, supabaseConfigError } from '@/api/supabaseClient';
 
 const AuthContext = createContext();
 
@@ -9,6 +9,11 @@ export const AuthProvider = ({ children }) => {
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
 
   useEffect(() => {
+    if (!isSupabaseConfigured) {
+      setIsLoadingAuth(false);
+      return () => {};
+    }
+
     // Sesión inicial
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -36,7 +41,9 @@ export const AuthProvider = ({ children }) => {
       isAuthenticated,
       isLoadingAuth,
       isLoadingPublicSettings: false,
-      authError: (!isAuthenticated && !isLoadingAuth) ? { type: 'auth_required' } : null,
+      authError: !isSupabaseConfigured
+        ? { type: 'configuration_required', message: supabaseConfigError }
+        : (!isAuthenticated && !isLoadingAuth) ? { type: 'auth_required' } : null,
       appPublicSettings: null,
       logout,
       navigateToLogin,

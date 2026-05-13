@@ -1,0 +1,17 @@
+{
+  "name": "Sistema de Reabastecimiento",
+  "short_name": "Reabastecimiento",
+  "description": "Aplicación para análisis de inventario, compras y reabastecimiento.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "https://base44.com/logo_v2.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
