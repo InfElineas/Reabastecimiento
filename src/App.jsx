@@ -17,6 +17,31 @@ import SalesRanking from './pages/SalesRanking';
 import ComparativeAnalysis from './pages/ComparativeAnalysis';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import Login from '@/pages/Login';
+import { missingSupabaseEnvVars } from '@/api/supabaseClient';
+
+
+const ConfigurationRequired = ({ message }) => (
+  <div className="min-h-screen bg-slate-50 px-4 py-10 text-slate-900">
+    <div className="mx-auto max-w-2xl rounded-xl border border-amber-200 bg-white p-6 shadow-sm">
+      <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-amber-700">
+        Configuración local incompleta
+      </p>
+      <h1 className="text-2xl font-bold">No se puede conectar con Supabase</h1>
+      <p className="mt-3 text-slate-600">
+        {message} La aplicación ya no queda en blanco: completa la configuración local y reinicia el servidor de desarrollo.
+      </p>
+      <ol className="mt-5 list-decimal space-y-3 pl-5 text-sm text-slate-700">
+        <li>Copia <code className="rounded bg-slate-100 px-1 py-0.5">.env.example</code> como <code className="rounded bg-slate-100 px-1 py-0.5">.env.local</code>.</li>
+        <li>Define <code className="rounded bg-slate-100 px-1 py-0.5">VITE_SUPABASE_URL</code> y <code className="rounded bg-slate-100 px-1 py-0.5">VITE_SUPABASE_ANON_KEY</code>.</li>
+        <li>Reinicia <code className="rounded bg-slate-100 px-1 py-0.5">npm run dev</code> para que Vite cargue las variables.</li>
+      </ol>
+      <div className="mt-5 rounded-lg bg-slate-950 p-4 text-sm text-slate-100">
+        <p className="font-semibold">Variables faltantes:</p>
+        <pre className="mt-2 whitespace-pre-wrap">{missingSupabaseEnvVars.join('\n')}</pre>
+      </div>
+    </div>
+  </div>
+);
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -27,7 +52,7 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   : <>{children}</>;
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -36,6 +61,10 @@ const AuthenticatedApp = () => {
         <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
       </div>
     );
+  }
+
+  if (authError?.type === 'configuration_required') {
+    return <ConfigurationRequired message={authError.message} />;
   }
 
   // Si no está autenticado, mostrar login

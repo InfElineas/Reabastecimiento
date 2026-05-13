@@ -1,9 +1,57 @@
 import { createClient } from '@supabase/supabase-js';
 
-export const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL?.trim();
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
+
+export const missingSupabaseEnvVars = [
+  ['VITE_SUPABASE_URL', SUPABASE_URL],
+  ['VITE_SUPABASE_ANON_KEY', SUPABASE_ANON_KEY],
+].filter(([, value]) => !value).map(([name]) => name);
+
+export const isSupabaseConfigured = missingSupabaseEnvVars.length === 0;
+
+export const supabaseConfigError = isSupabaseConfigured
+  ? null
+  : `Faltan variables de entorno de Supabase: ${missingSupabaseEnvVars.join(', ')}.`;
+
+function createDisabledSupabaseClient() {
+  const configurationError = new Error(
+    `${supabaseConfigError} Copia .env.example a .env.local, completa los valores y reinicia npm run dev.`
+  );
+
+  return {
+    auth: {
+      async getSession() {
+        return { data: { session: null }, error: null };
+      },
+      onAuthStateChange() {
+        return { data: { subscription: { unsubscribe: () => {} } } };
+      },
+      async getUser() {
+        return { data: { user: null }, error: configurationError };
+      },
+      async signInWithPassword() {
+        return { data: null, error: configurationError };
+      },
+      async signUp() {
+        return { data: null, error: configurationError };
+      },
+      async signOut() {
+        return { error: null };
+      },
+    },
+    from() {
+      throw configurationError;
+    },
+    rpc() {
+      throw configurationError;
+    },
+  };
+}
+
+export const supabase = isSupabaseConfigured
+  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : createDisabledSupabaseClient();
 
 // ── Entity name → Supabase table name ─────────────────────
 const TABLE_MAP = {

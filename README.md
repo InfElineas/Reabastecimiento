@@ -15,16 +15,22 @@ Any change pushed to the repo will also be reflected in the Base44 Builder.
 1. Clone the repository using the project's Git URL 
 2. Navigate to the project directory
 3. Install dependencies: `npm install`
-4. Create an `.env.local` file and set the right environment variables
+4. Create an `.env.local` file and set the right environment variables. The local app uses Supabase directly, so these two variables are required before the React app can boot:
+
+```bash
+cp .env.example .env.local
+```
 
 ```
-VITE_BASE44_APP_ID=your_app_id
-VITE_BASE44_APP_BASE_URL=your_backend_url
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 
-e.g.
-VITE_BASE44_APP_ID=cbef744a8545c389ef439ea6
-VITE_BASE44_APP_BASE_URL=https://my-to-do-list-81bfaad7.base44.app
+# Optional: only needed for external data imports
+VITE_EXT_SUPABASE_URL=https://your-external-project-ref.supabase.co
+VITE_EXT_SUPABASE_ANON_KEY=your-external-supabase-anon-key
 ```
+
+You can find the Supabase URL and anon key in **Supabase > Project Settings > API**. If these values are missing, the app shows a configuration screen instead of a blank page.
 
 Run the app: `npm run dev`
 
